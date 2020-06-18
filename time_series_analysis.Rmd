@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = FALSE)
 
 
 ```{r}
+## importing data/preliminiary analysis
+
 library(MASS)
 library(tseries)
 library(astsa)
@@ -24,12 +26,13 @@ unrate = ts(unemployment, start = c(2000, 1), frequency  = 12)
 t = 1:length(unrate)
 length(unrate)
 fit = lm(unrate~t)
+```
+
+## differencing data and looking for trends and applying transformations
+```{r}
 hist(unrate, main = "Histogram of Unemployment Rate")
 shapiro.test(unrate)
 bcTransform = boxcox(unrate~t, plotit = TRUE)
-```
-
-```{r}
 lambda = bcTransform$x[which(bcTransform$y == max(bcTransform$y))]
 unrate.bc = (1/lambda)*(unrate^lambda-1)
 unrate.log = log(unrate)
@@ -41,7 +44,7 @@ ts.plot(unrate.bc, main = "Box-Cox Transformed")
 ts.plot(unrate.log, main = "Log Transformed Unemployment Rate of College Graduates", ylab = "log(unemployment rate)")
 ```
 
-
+## analyzing autocorrelation functions and partial autocorrelation functions to get a model estimate
 ```{r}
 acf(unrate.log, lag.max = 60)
 dunrate = diff(unrate,12)
@@ -52,6 +55,7 @@ acf(ddunrate, lag.max = 60)
 pacf(ddunrate, lag.max = 100)
 ```
 
+## Selecting a model and doing diagnostic checking with residuals to choose a model from my candidate models
 
 ```{r}
 arima(unrate.log , c(1,1,0), seasonal = list(order = c(2,1,1), period = 12, method = "ML"))
@@ -131,7 +135,7 @@ hist(fit.ii$residuals)
 shapiro.test((fit.ii$residuals))
 ```
 
-
+## forecasting with a testing and training set
 ```{r}
 train = unrate[1:216]
 test = unrate[216:244]
